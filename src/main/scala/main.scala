@@ -13,9 +13,10 @@ object HelloWorld extends App {
   println(part1.Mod.isSorted(nonSortedArr))
 
   val list = part1.MyList(1, 2, 3)
+  val list2 = part1.MyList(10, 20, 30, 40)
   val nil = part1.Nil
   val newList: part1.MyList[Int] = part1.Cons(100, list)
 
-  println(part1.MyList.drop(newList, 2))
-  println(part1.MyList.dropWhile(newList, (i: Int) => i == 1))
+  println(part1.MyList.addPairwise(list, list2))
+  println(part1.MyList.filter(list)(_ > 1))
 }

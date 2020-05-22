@@ -1,3 +1,6 @@
+import part1.error.Person
+import part1.{Branch, Leaf, Tree}
+
 import scala.util.{Failure, Success}
 
 object HelloWorld extends App {
@@ -19,4 +22,14 @@ object HelloWorld extends App {
 
   println(part1.MyList.addPairwise(list, list2))
   println(part1.MyList.filter(list)(_ > 1))
+
+  val t: Tree[Int] = Branch(
+    Branch(Leaf(1), Leaf(2)),
+    Branch(Leaf(3), Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(8))))
+  )
+  println(Tree.depth(t))
+  println(Tree.map(t)(_ * 10))
+
+  val p = Person.mkPersonViaFor("", 10)
+  println(p)
 }

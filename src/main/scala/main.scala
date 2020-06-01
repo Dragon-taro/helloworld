@@ -32,4 +32,18 @@ object HelloWorld extends App {
 
   val p = Person.mkPersonViaFor("", 10)
   println(p)
+
+  val s = Stream(1, 2, 3).taken(2)
+  println(s)
+
+  val ones: Stream[Int] = Stream.cons(1, ones)
+  println(ones.taken(2).toList)
+
+  val const1 = Stream.constant(1)
+  val const2 = Stream.constant2(1)
+  val nums = Stream.from(10).taken(10).toList
+
+  println(const1)
+  println(const2)
+  println(nums)
 }

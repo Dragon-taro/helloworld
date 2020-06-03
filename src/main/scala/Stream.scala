@@ -20,8 +20,8 @@ trait Stream[+A] {
   }
 
   def drop(n: Int): Stream[A] = this match {
-    case Empty      => Empty
-    case Cons(_, t) => t().drop(n - 1)
+    case Cons(_, t) if n > 0 => t().drop(n - 1)
+    case Empty               => this
   }
 
   def takeWhile(f: A => Boolean): Stream[A] = this match {
@@ -33,6 +33,12 @@ trait Stream[+A] {
     foldRight(Stream[A]())(
       (a, b) => if (f(a)) Stream.cons(a, b) else Stream.empty
     )
+
+  def takeWhileViaUnfold(f: A => Boolean): Stream[A] =
+    Stream.unfold(this) {
+      case Cons(h, t) if f(h()) => Some((h(), t()))
+      case _                    => None
+    }
 
   def exists(p: A => Boolean): Boolean = this match {
     case Cons(h, t) => p(h()) || t().exists(p)
@@ -53,6 +59,19 @@ trait Stream[+A] {
   def map[B](f: A => B): Stream[B] =
     foldRight(Stream.empty[B])((a, b) => Stream.cons(f(a), b))
 
+  def mapViaUnfold[B](f: A => B): Stream[B] =
+    Stream.unfold(this) {
+      case Cons(h, t) => Some((f(h()), t()))
+      case _          => None
+    }
+
+  def takeViaUnfold(n: Int): Stream[A] =
+    Stream.unfold((this, n)) {
+      case (Cons(h, t), 1)          => Some((h(), (Stream.empty, 0)))
+      case (Cons(h, t), n) if n > 1 => Some((h(), (t(), n - 1)))
+      case _                        => None
+    }
+
   def filter(f: A => Boolean): Stream[A] =
     foldRight(Stream.empty[A])(
       (h, t) =>
@@ -65,6 +84,20 @@ trait Stream[+A] {
 
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(Stream.empty[B])((a, b) => f(a).append(b))
+
+  def zipWith[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] =
+    Stream.unfold((this, s2)) {
+      case (Cons(h1, t1), Cons(h2, t2)) => Some((f(h1(), h2()), (t1(), t2())))
+      case _                            => None
+    }
+
+  def tails: Stream[Stream[A]] =
+    Stream
+      .unfold(this) {
+        case s     => Some((s, s.drop(1)))
+        case Empty => None
+      }
+      .append(Stream.empty)
 }
 
 case object Empty extends Stream[Nothing]
@@ -106,6 +139,10 @@ object Stream {
     def go(f1: Int, f2: Int): Stream[Int] =
       cons(f1, go(f1, f1 + f2))
     go(0, 1)
+  }
+
+  val fibsViaUnfold = unfold((0, 1)) {
+    case (f0, f1) => Some((f0, (f1, f0 + f1)))
   }
 
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
